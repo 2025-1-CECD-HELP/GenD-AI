@@ -4,6 +4,11 @@ from docx import Document
 from docx.table import Table
 from docx.text.paragraph import Paragraph
 from pinecone.grpc import PineconeGRPC as Pinecone
+from docxtpl import DocxTemplate
+import string
+import secrets
+import json
+import boto3
 
 from dotenv import load_dotenv
 # .env 파일 로드
@@ -11,6 +16,15 @@ load_dotenv()
 
 TEMP_DOCX_DIR = os.getenv("TEMP_DOCX_DIR")
 PINECONE_API_KEY = os.getenv("PINECONE_API_KEY")
+AWS_ACCESS_KEY = os.getenv("AWS_ACCESS_KEY")
+AWS_SECRET_ACCESS_KEY = os.getenv("AWS_SECRET_ACCESS_KEY")
+BUCKET_NAME= os.getenv("BUCKET_NAME")
+
+s3 = boto3.client(
+    "s3",
+    aws_access_key_id=AWS_ACCESS_KEY,
+    aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
+)
 
 def download_docx_from_s3(url: str) -> str:
     """
@@ -71,13 +85,6 @@ def index_pdfs(extract_doc, filename):
     NAMESPACE = "ns1"
     index = pinecone.Index(INDEX_NAME)
 
-    vectors = []
-        # resp = openai.Embedding.create(
-        #     input=text,
-        #     model="text-embedding-ada-002"
-        # )
-        # embedding = resp["data"][0]["embedding"]    
-        # Prepare tuple (id, values, metadata)
     embeddings = pinecone.inference.embed(
         model="multilingual-e5-large",
         inputs=str(extract_doc),
@@ -104,3 +111,44 @@ def docx_to_pine(url: str):
     extract_doc = extract_docx_text(local_path)
     index_pdfs(extract_doc, filename)
     return True
+
+def random_key(length: int = 20) -> str:
+    alphabet = string.ascii_letters + string.digits
+    return ''.join(secrets.choice(alphabet) for _ in range(length))
+
+def docx_to_s3(template_content: dict, templateId: str):
+    """
+    주어진 minutes 딕셔너리를 사용하여
+    템플릿 .docx 파일을 생성하고 S3에 업로드합니다.
+    """
+    
+    # 템플릿 워드 파일 불러오기
+    if templateId == '1':
+        doc = DocxTemplate("template/template1.docx")
+    elif templateId == '2':
+        doc = DocxTemplate("template/template2.docx")
+
+    context = {item.objectKey.replace(' ', '_'): item.objectValue for item in template_content}
+
+    # 템플릿에 값 채워넣기
+    doc.render(context)
+
+    file_name = f"minutes_{random_key()}.docx"
+    file_path = f"/home/teom142/goinfre/study/ai_study/agile/GenD-AI/docx_output/{file_name}"
+    doc.save(file_path)
+
+    s3_key = f"docx/{file_name}"
+    content_type = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+    s3.upload_fileobj(
+            Fileobj=open(file_path, "rb"),
+            Bucket=BUCKET_NAME,
+            Key=s3_key,
+            ExtraArgs={"ContentType": content_type}
+        )
+    
+    file_url = f"https://{BUCKET_NAME}.s3.amazonaws.com/{s3_key}"
+
+    # 결과 워드 파일 저장
+    
+
+    return file_url   

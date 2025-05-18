@@ -11,7 +11,7 @@ load_dotenv()
 
 AWS_ACCESS_KEY = os.getenv("AWS_ACCESS_KEY")
 AWS_SECRET_ACCESS_KEY = os.getenv("AWS_SECRET_ACCESS_KEY")
-bucket_name= os.getenv("BUCKET_NAME")
+BUCKET_NAME= os.getenv("BUCKET_NAME")
 
 # 민기 s3 버킷
 s3 = boto3.client(

@@ -21,10 +21,6 @@ def retrieve_context(query, top_k=5):
         )
 
     index = pinecone.Index(INDEX_NAME)
-    # q_emb = openai.Embedding.create(
-    #     input=query,
-    #     model="text-embedding-ada-002"
-    # )["data"][0]["embedding"]
 
     q_emb = pinecone.inference.embed(
         model="multilingual-e5-large",
@@ -50,8 +46,7 @@ def chat_with_sources(query):
     and calls ChatGPT to generate a response that cites each PDF source.
     """
     matches = retrieve_context(query)
-    # print(matches[0].metadata)
-    # Build context string
+
     context_sections = []
     for m in matches:
         ctx = m.metadata.get("text", "")  # if you stored text in metadata
@@ -60,9 +55,7 @@ def chat_with_sources(query):
 
     context_text = "\n\n".join(context_sections)
 
-    # print(context_text)
 
-    # System prompt instructs the model to cite sources
     system_prompt = (
         "You are a helpful assistant. Use the following context to answer "
         "the user’s question, and for each piece of information you use, "

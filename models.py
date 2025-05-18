@@ -5,3 +5,14 @@ class DocxModel(BaseModel):
 
 class ChatModel(BaseModel):
 	secretaryQuestion: str
+
+class object(BaseModel):
+	objectKey: str
+	objectValue: str
+
+class MinutesModel(BaseModel):
+	templateContent: list[object]
+	templateId: str
+
+class TemplateModel(BaseModel):
+	templateId: str
