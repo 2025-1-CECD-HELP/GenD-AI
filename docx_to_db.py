@@ -125,15 +125,19 @@ def docx_to_s3(template_content: dict, templateId: str):
     # 템플릿 워드 파일 불러오기
     if templateId == '1':
         doc = DocxTemplate("template/template1.docx")
+        file_name = f"template1_{random_key()}.docx"
     elif templateId == '2':
         doc = DocxTemplate("template/template2.docx")
+        file_name = f"template2_{random_key()}.docx"
+    elif templateId == '3':
+        doc = DocxTemplate("template/template3.docx")
+        file_name = f"template3_{random_key()}.docx"
 
     context = {item.objectKey.replace(' ', '_'): item.objectValue for item in template_content}
 
     # 템플릿에 값 채워넣기
     doc.render(context)
 
-    file_name = f"minutes_{random_key()}.docx"
     file_path = f"/home/teom142/goinfre/study/ai_study/agile/GenD-AI/docx_output/{file_name}"
     doc.save(file_path)
 
@@ -147,8 +151,5 @@ def docx_to_s3(template_content: dict, templateId: str):
         )
     
     file_url = f"https://{BUCKET_NAME}.s3.amazonaws.com/{s3_key}"
-
-    # 결과 워드 파일 저장
-    
 
     return file_url   

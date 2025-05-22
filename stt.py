@@ -47,6 +47,29 @@ tmp2_format = {
     "Summary": "요약"
 }
 
+class tmp3Format(BaseModel):
+    AuthorAffiliation: str
+    AuthorPosition: str
+    AuthorName: str
+    MeetingDate: str
+    MeetingTime: str
+    Location: str
+    Agenda: str
+    MeetingContent: str
+    MeetingResults: str
+
+tmp3_format = {
+    "AuthorAffiliation": "작성자 소속",
+    "AuthorPosition": "작성자 직위",
+    "AuthorName": "작성자명",
+    "MeetingDate": "회의 일시",
+    "MeetingTime": "회의 시간",
+    "Location": "회의 장소",
+    "Agenda": "회의 안건",
+    "MeetingContent": "회의 내용",
+    "MeetingResults": "회의 결과"
+}
+
 def transcribe_audio(audio_file_path):
     client = OpenAI(
     api_key=OPENAI_API_KEY
@@ -160,6 +183,65 @@ def template2_generate(transcription):
     for key, value in output.items():
         if key in tmp2_format:
             processed_output[tmp2_format[key]] = value
+        else:
+            processed_output[key] = value
+    return processed_output
+
+def template3_generate(transcription):
+    client = OpenAI(
+        api_key=OPENAI_API_KEY
+    )
+
+    prompt = f"""
+    Please use the following instructions to fill in the attached “Meeting Minutes” template:
+
+    Role: Meeting secretary  
+    Target document: Meeting Minutes Template
+
+    1. Author Affiliation: 
+    2. Author Position: 
+    3. Author Name: 
+    4. Meeting Date: 
+    5. Meeting Time: 
+    6. Location: 
+    7. Agenda: 
+    8. Meeting Content: 
+    9. Meeting Results: 
+
+    Guidelines for writing:  
+    - Agenda must be a single short sentence.  
+    - Meeting agenda: List 3-5 key items by numbering them or using a bullet point list. 
+        After listing them, return to a new line and write in more detail.
+    - Outcomes: summarize decisions in 2–3 sentences.  
+    - Attendees: provide a table with columns “Department – Name – Contact – Signature.”  
+    - If any information is unknown, write “unknown.”  
+    - Use a formal, objective tone appropriate for meeting minutes.  
+    - Do not use Markdown output format.
+
+    Answer in Korean.
+    """
+    response = client.beta.chat.completions.parse(
+        model="gpt-4.1-mini-2025-04-14",
+        temperature=0,
+        messages=[
+            {
+                "role": "system",
+                "content": prompt
+            },
+            {
+                "role": "user",
+                "content": transcription
+            }
+        ],
+        response_format=tmp3Format,
+    )
+
+    result = response.choices[0].message.content
+    output = json.loads(result)
+    processed_output = {}
+    for key, value in output.items():
+        if key in tmp3_format:
+            processed_output[tmp3_format[key]] = value
         else:
             processed_output[key] = value
     return processed_output
