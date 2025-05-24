@@ -12,6 +12,7 @@ load_dotenv()
 AWS_ACCESS_KEY = os.getenv("AWS_ACCESS_KEY")
 AWS_SECRET_ACCESS_KEY = os.getenv("AWS_SECRET_ACCESS_KEY")
 BUCKET_NAME= os.getenv("BUCKET_NAME")
+TEMP_AUDIO_DIR = os.getenv("TEMP_AUDIO_DIR")
 
 # 민기 s3 버킷
 s3 = boto3.client(
@@ -45,11 +46,10 @@ def upload_file_to_s3(file, tmp_file):
     return file_url
 
 def upload_file_to_local(file):
-    TMP_DIR = "/home/teom142/goinfre/study/ai_study/agile/server/tmp/audio"
     filename = file.filename
     _, ext = os.path.splitext(filename)
     tmp_file = f"{random_key()}{ext}"
-    tmp_path = os.path.join(TMP_DIR, tmp_file)
+    tmp_path = os.path.join(TEMP_AUDIO_DIR, tmp_file)
 
     # UploadFile.file 을 읽어 로컬 디스크에 저장
     with open(tmp_path, "wb") as buffer:

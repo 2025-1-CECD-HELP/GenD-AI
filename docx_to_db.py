@@ -19,6 +19,7 @@ PINECONE_API_KEY = os.getenv("PINECONE_API_KEY")
 AWS_ACCESS_KEY = os.getenv("AWS_ACCESS_KEY")
 AWS_SECRET_ACCESS_KEY = os.getenv("AWS_SECRET_ACCESS_KEY")
 BUCKET_NAME= os.getenv("BUCKET_NAME")
+DOCX_OUTPUT_DIR= os.getenv("DOCX_OUTPUT_DIR")
 
 s3 = boto3.client(
     "s3",
@@ -138,7 +139,7 @@ def docx_to_s3(template_content: dict, templateId: str):
     # 템플릿에 값 채워넣기
     doc.render(context)
 
-    file_path = f"/home/teom142/goinfre/study/ai_study/agile/GenD-AI/docx_output/{file_name}"
+    file_path = f"{DOCX_OUTPUT_DIR}/{file_name}"
     doc.save(file_path)
 
     s3_key = f"docx/{file_name}"
